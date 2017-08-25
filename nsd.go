@@ -199,7 +199,7 @@ func (this *Instruction) FillFromLedgerValue(bytes []byte) error {
 }
 
 // **** Position Methods **** //
-func (this *nsd.Position) toStringArray() ([]string) {
+func (this *Position) toStringArray() ([]string) {
 	return []string{
 		this.Balance.Account,
 		this.Balance.Division,
@@ -208,7 +208,7 @@ func (this *nsd.Position) toStringArray() ([]string) {
 }
 
 func (this *Position) ToCompositeKey(stub shim.ChaincodeStubInterface) (string, error) {
-	return stub.CreateCompositeKey(indexName, this.toStringArray())
+	return stub.CreateCompositeKey(PositionIndex, this.toStringArray())
 }
 
 func (this *Position) existsIn(stub shim.ChaincodeStubInterface) (bool) {
@@ -307,7 +307,7 @@ func (this *Position) FillFromLedgerValue(bytes []byte) (error) {
 
 	quantity, err := strconv.Atoi(str[0])
 	if err != nil {
-		logger.Error("cannot convert to quantity", err)
+		return err
 	}
 	this.Quantity = quantity
 

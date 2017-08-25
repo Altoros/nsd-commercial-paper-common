@@ -236,7 +236,7 @@ func (this *Position) loadFrom(stub shim.ChaincodeStubInterface) (error) {
 		return err
 	}
 
-	return this.fillFromLedgerValue(bytes)
+	return this.FillFromLedgerValue(bytes)
 }
 
 func (this *Position) UpsertIn(stub shim.ChaincodeStubInterface) (error) {
@@ -258,7 +258,7 @@ func (this *Position) UpsertIn(stub shim.ChaincodeStubInterface) (error) {
 	return nil
 }
 
-func (this *Position) fillFromCompositeKeyParts(compositeKeyParts []string) (error) {
+func (this *Position) FillFromCompositeKeyParts(compositeKeyParts []string) (error) {
 	if len(compositeKeyParts) != 3 {
 		return errors.New("Composite key parts array length must be 3.")
 	}
@@ -298,7 +298,7 @@ func (this *Position) toJSON() ([]byte, error) {
 	return json.Marshal(this)
 }
 
-func (this *Position) fillFromLedgerValue(bytes []byte) (error) {
+func (this *Position) FillFromLedgerValue(bytes []byte) (error) {
 	var str []string
 	err := json.Unmarshal(bytes, &str)
 	if err != nil {

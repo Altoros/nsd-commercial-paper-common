@@ -31,6 +31,13 @@ type Instruction struct {
 	Value InstructionValue `json:"value"`
 }
 
+// Position is the main data type stored in ledger
+type Position struct {
+	Balance      	Balance `json:"balance"`
+	Security        string 	`json:"security"`
+	Quantity        int 	`json:"quantity"`
+}
+
 type InstructionKey struct {
 	Transferer Balance `json:"transferer"`
 	Receiver   Balance `json:"receiver"`

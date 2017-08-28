@@ -9,6 +9,7 @@ import (
 )
 
 var logger = shim.NewLogger("Certificates Common")
+const NSD_NAME string = "nsd.nsd.ru"
 
 // **** Security Methods **** //
 func getOrganization(certificate []byte) string {

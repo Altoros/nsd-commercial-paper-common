@@ -2,7 +2,7 @@
 
 main repository https://github.com/olegabu/nsd-commercial-paper
 
-By [National Security Depository of Russia](https://www.nsd.ru).
+By [National Settlement Depository of Russia](https://www.nsd.ru).
 
 Built by [Altoros](http://altoros.com).
 

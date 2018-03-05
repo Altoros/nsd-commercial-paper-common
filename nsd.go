@@ -32,6 +32,10 @@ const (
 	InstructionTypeDVP = "dvp"
 )
 
+// Args lengths
+const fopArgsLength = 10
+const dvpArgsLength = 16
+
 // TODO: make this private
 const InstructionIndex = `Instruction`
 const PositionIndex = `Position`
@@ -84,7 +88,7 @@ type InstructionValue struct {
 	AlamedaTo               string `json:"alamedaTo"`
 	AlamedaSignatureFrom    string `json:"alamedaSignatureFrom"`
 	AlamedaSignatureTo      string `json:"alamedaSignatureTo"`
-	AdditionalInformation   string `json:"additionalInformation"`
+	AdditionalInformation   Reason `json:"additionalInformation"`
 }
 
 type Balance struct {
@@ -134,10 +138,7 @@ func (this *Instruction) ToCompositeKey(stub shim.ChaincodeStubInterface) (strin
 }
 
 func (this *Instruction) FillFromCompositeKeyParts(compositeKeyParts []string) error {
-	const fopArgsLengths = 9
-	const dvpArgsLengths = 16
-
-	if len(compositeKeyParts) < fopArgsLengths {
+	if len(compositeKeyParts) < fopArgsLength {
 		return errors.New("Composite key parts array length must be at least 9.")
 	}
 
@@ -145,30 +146,25 @@ func (this *Instruction) FillFromCompositeKeyParts(compositeKeyParts []string) e
 		return errors.New("Quantity must be int.")
 	}
 
-	if len(compositeKeyParts) > fopArgsLengths {
-		if compositeKeyParts[9] != InstructionTypeFOP && compositeKeyParts[9] != InstructionTypeDVP {
-			return errors.New("Type of instruction must be either \"fop\" or \"dvp\".")
+	if compositeKeyParts[9] != InstructionTypeFOP && compositeKeyParts[9] != InstructionTypeDVP {
+		return errors.New("Type of instruction must be either \"fop\" or \"dvp\".")
+	}
+
+	if compositeKeyParts[9] == InstructionTypeDVP {
+		if len(compositeKeyParts) < dvpArgsLength {
+			return errors.New("Composite key parts array length for \"dvp\" option must be at least 16.")
 		}
 
-		if compositeKeyParts[9] == InstructionTypeDVP {
-			if len(compositeKeyParts) < dvpArgsLengths {
-				return errors.New("Composite key parts array length for \"dvp\" option must be at least 16.")
-			}
-
-			if _, err := strconv.ParseFloat(compositeKeyParts[14], 64); err != nil {
-				return errors.New("Payment amount must be float (dvp).")
-			}
+		if _, err := strconv.ParseFloat(compositeKeyParts[14], 64); err != nil {
+			return errors.New("Payment amount must be float (dvp).")
 		}
 
-		this.Key.Type = compositeKeyParts[9]
 		this.Key.TransfererRequisites.Account = compositeKeyParts[10]
 		this.Key.TransfererRequisites.Bic = compositeKeyParts[11]
 		this.Key.ReceiverRequisites.Account = compositeKeyParts[12]
 		this.Key.ReceiverRequisites.Bic = compositeKeyParts[13]
 		this.Key.PaymentAmount = compositeKeyParts[14]
 		this.Key.PaymentCurrency = compositeKeyParts[15]
-	} else {
-		this.Key.Type = InstructionTypeFOP
 	}
 
 	this.Key.Transferer.Account = compositeKeyParts[0]
@@ -180,6 +176,7 @@ func (this *Instruction) FillFromCompositeKeyParts(compositeKeyParts []string) e
 	this.Key.Reference = compositeKeyParts[6]
 	this.Key.InstructionDate = compositeKeyParts[7]
 	this.Key.TradeDate = compositeKeyParts[8]
+	this.Key.Type = compositeKeyParts[9]
 
 	return nil
 }

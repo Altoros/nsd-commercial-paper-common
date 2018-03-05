@@ -9,10 +9,14 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+// Instruction initiators
 const (
 	InitiatorIsTransferer = "transferer"
 	InitiatorIsReceiver   = "receiver"
+)
 
+// Instruction statuses
+const (
 	InstructionInitiated  = "initiated"
 	InstructionMatched    = "matched"
 	InstructionSigned     = "signed"
@@ -20,6 +24,12 @@ const (
 	InstructionDownloaded = "downloaded"
 	InstructionDeclined   = "declined"
 	InstructionCanceled   = "canceled"
+)
+
+// Instruction types
+const (
+	InstructionTypeFOP = "fop"
+	InstructionTypeDVP = "dvp"
 )
 
 // TODO: make this private
@@ -50,9 +60,10 @@ type InstructionKey struct {
 	InstructionDate string `json:"instructionDate"`
 	TradeDate       string `json:"tradeDate"`
 
-	Type string `json:"type"`// only valid values are "fop" and "dvp"
+	// valid types are described by "Instruction types" constants
+	Type string `json:"type"`
 
-	// block below is used only if Type == "dvp"
+	// block below is used only if Type == InstructionTypeDVP
 	TransfererRequisites Requisites `json:"transfererRequisites"`
 	ReceiverRequisites   Requisites `json:"receiverRequisites"`
 	// TODO: amount should be float
@@ -123,22 +134,41 @@ func (this *Instruction) ToCompositeKey(stub shim.ChaincodeStubInterface) (strin
 }
 
 func (this *Instruction) FillFromCompositeKeyParts(compositeKeyParts []string) error {
-	if len(compositeKeyParts) < 16 {
-		return errors.New("Composite key parts array length must be at least 16.")
+	const fopArgsLengths = 9
+	const dvpArgsLengths = 16
+
+	if len(compositeKeyParts) < fopArgsLengths {
+		return errors.New("Composite key parts array length must be at least 9.")
 	}
 
 	if _, err := strconv.Atoi(compositeKeyParts[5]); err != nil {
 		return errors.New("Quantity must be int.")
 	}
 
-	if compositeKeyParts[9] != "fop" && compositeKeyParts[9] != "dvp" {
-		return errors.New("Type of instruction must be either \"fop\" or \"dvp\".")
-	}
-
-	if compositeKeyParts[9] == "dvp" {
-		if _, err := strconv.ParseFloat(compositeKeyParts[14], 64); err != nil {
-			return errors.New("Payment amount must be float.")
+	if len(compositeKeyParts) > fopArgsLengths {
+		if compositeKeyParts[9] != InstructionTypeFOP && compositeKeyParts[9] != InstructionTypeDVP {
+			return errors.New("Type of instruction must be either \"fop\" or \"dvp\".")
 		}
+
+		if compositeKeyParts[9] == InstructionTypeDVP {
+			if len(compositeKeyParts) < dvpArgsLengths {
+				return errors.New("Composite key parts array length for \"dvp\" option must be at least 16.")
+			}
+
+			if _, err := strconv.ParseFloat(compositeKeyParts[14], 64); err != nil {
+				return errors.New("Payment amount must be float (dvp).")
+			}
+		}
+
+		this.Key.Type = compositeKeyParts[9]
+		this.Key.TransfererRequisites.Account = compositeKeyParts[10]
+		this.Key.TransfererRequisites.Bic = compositeKeyParts[11]
+		this.Key.ReceiverRequisites.Account = compositeKeyParts[12]
+		this.Key.ReceiverRequisites.Bic = compositeKeyParts[13]
+		this.Key.PaymentAmount = compositeKeyParts[14]
+		this.Key.PaymentCurrency = compositeKeyParts[15]
+	} else {
+		this.Key.Type = InstructionTypeFOP
 	}
 
 	this.Key.Transferer.Account = compositeKeyParts[0]
@@ -150,13 +180,6 @@ func (this *Instruction) FillFromCompositeKeyParts(compositeKeyParts []string) e
 	this.Key.Reference = compositeKeyParts[6]
 	this.Key.InstructionDate = compositeKeyParts[7]
 	this.Key.TradeDate = compositeKeyParts[8]
-	this.Key.Type = compositeKeyParts[9]
-	this.Key.TransfererRequisites.Account = compositeKeyParts[10]
-	this.Key.TransfererRequisites.Bic = compositeKeyParts[11]
-	this.Key.ReceiverRequisites.Account = compositeKeyParts[12]
-	this.Key.ReceiverRequisites.Bic = compositeKeyParts[13]
-	this.Key.PaymentAmount = compositeKeyParts[14]
-	this.Key.PaymentCurrency = compositeKeyParts[15]
 
 	return nil
 }

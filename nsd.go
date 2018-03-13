@@ -25,7 +25,7 @@ const (
 	InstructionDeclined   = "declined"
 	InstructionCanceled   = "canceled"
 
-	InstructionRollbackInitialized = "rollbackInitialized"
+	InstructionRollbackInitialized = "rollbackInitiated"
 	InstructionRollbackDone        = "rollbackDone"
 	InstructionRollbackDeclined    = "rollbackDeclined"
 )

@@ -11,6 +11,8 @@ import (
 	"encoding/pem"
 	"crypto/rand"
 	pb "github.com/hyperledger/fabric/protos/peer"
+	"container/list"
+	"github.com/hyperledger/fabric/protos/testutils"
 )
 
 type TestStub struct {
@@ -113,4 +115,9 @@ func (stub *TestStub) MockInvoke(uuid string, args [][]byte) pb.Response {
 	res := stub.cc.Invoke(stub)
 	stub.MockTransactionEnd(uuid)
 	return res
+}
+
+func NewTestStub(name string, cc shim.Chaincode) *TestStub {
+	ts := &TestStub{MockStub: shim.NewMockStub(name, cc), cc: cc}
+	return ts
 }

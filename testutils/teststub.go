@@ -11,8 +11,6 @@ import (
 	"encoding/pem"
 	"crypto/rand"
 	pb "github.com/hyperledger/fabric/protos/peer"
-	"container/list"
-	"github.com/hyperledger/fabric/protos/testutils"
 )
 
 type TestStub struct {

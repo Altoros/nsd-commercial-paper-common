@@ -1,4 +1,4 @@
-package testing
+package testutils
 
 import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
